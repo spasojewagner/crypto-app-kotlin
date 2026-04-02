@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Theme Colors -->
+    <color name="background_dark">#0A1628</color>
+    <color name="card_background">#152238</color>
+    <color name="blue_primary">#2196F3</color>
+    <color name="blue_dark">#1976D2</color>
+
+    <!-- Text Colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="text_secondary">#8E9BA8</color>
+
+    <!-- Status Colors -->
+    <color name="green_profit">#00C853</color>
+    <color name="red_loss">#FF3D00</color>
+
+    <!-- System -->
+    <color name="black">#000000</color>
+
+    <!-- Bottom Navigation -->
+    <color name="bottom_nav_color">#152238</color>
+    <color name="bottom_nav_selected">#2196F3</color>
+    <color name="bottom_nav_unselected">#64748B</color>
+    <color name="dark_background">#0F1419</color>
+
+    <!-- Purple colors -->
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="purple_accent">#9C27B0</color>
+
+    <!-- Additional colors -->
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="orange">#FF6F00</color>
+    <color name="blue_info">#0091EA</color>
+    <color name="gray_text">#8E8E93</color>
+
+    <!-- Test result colors - ZA TESTING SYSTEM -->
+    <color name="test_pass_bg">#E8F5E9</color>
+    <color name="test_fail_bg">#FFEBEE</color>
+    <color name="test_running_bg">#FFF3E0</color>
+</resources>
