@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Request, Response } from 'express';
 import { 
   getAllCryptoPrices, 
@@ -35,7 +36,7 @@ export const getAllPrices = async (req: Request, res: Response): Promise<void> =
  */
 export const getSinglePrice = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { symbol } = req.params;
+    const symbol = String(req.params.symbol);
     const price = await getCryptoPrice(symbol);
     
     if (!price) {
@@ -65,7 +66,7 @@ export const getSinglePrice = async (req: Request, res: Response): Promise<void>
  */
 export const getChartData = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { symbol } = req.params;
+    const symbol = String(req.params.symbol);
     const { interval = '1h', limit = 24 } = req.query;
     
     const chartData = await getCryptoChartData(
@@ -93,7 +94,11 @@ export const getChartData = async (req: Request, res: Response): Promise<void> =
  */
 export const getUserPortfolio = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId } = req.params;
+    const userId = String(req.params.userId);
+    if (!mongoose.isValidObjectId(userId)) {
+      res.status(400).json({ success: false, message: 'Neispravan korisnik' });
+      return;
+    }
     
     let portfolio = await Portfolio.findOne({ userId });
     
@@ -121,7 +126,7 @@ export const getUserPortfolio = async (req: Request, res: Response): Promise<voi
       totalBalance += currentValue;
 
       return {
-        ...item.toObject(),
+        ...(item as unknown as { toObject: () => Record<string, unknown> }).toObject(),
         currentPrice: currentPrice?.price || 0,
         currentValue: currentValue,
         profitLoss: profitLoss,
@@ -153,9 +158,14 @@ export const getUserPortfolio = async (req: Request, res: Response): Promise<voi
  */
 export const addToPortfolio = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId, symbol, name, amount, buyPrice } = req.body;
+    // Plain strings and positive numbers only: an object here would be a MongoDB query operator.
+    const userId = typeof req.body?.userId === 'string' ? req.body.userId : '';
+    const symbol = typeof req.body?.symbol === 'string' ? req.body.symbol : '';
+    const name = typeof req.body?.name === 'string' ? req.body.name : '';
+    const amount = Number(req.body?.amount);
+    const buyPrice = Number(req.body?.buyPrice);
 
-    if (!userId || !symbol || !name || !amount || !buyPrice) {
+    if (!mongoose.isValidObjectId(userId) || !symbol || !name || !(amount > 0) || !(buyPrice > 0)) {
       res.status(400).json({
         success: false,
         message: 'Sva polja su obavezna'
@@ -174,12 +184,12 @@ export const addToPortfolio = async (req: Request, res: Response): Promise<void>
 
     if (existingIndex !== -1) {
       // Update postojećeg
-      const existing = portfolio.items[existingIndex];
+      const existing = portfolio.items[existingIndex]!;
       const totalAmount = existing.amount + amount;
       const totalCost = (existing.amount * existing.averageBuyPrice) + (amount * buyPrice);
-      
-      portfolio.items[existingIndex].amount = totalAmount;
-      portfolio.items[existingIndex].averageBuyPrice = totalCost / totalAmount;
+
+      existing.amount = totalAmount;
+      existing.averageBuyPrice = totalCost / totalAmount;
     } else {
       // Dodaj novi
       portfolio.items.push({
@@ -214,7 +224,12 @@ export const addToPortfolio = async (req: Request, res: Response): Promise<void>
  */
 export const toggleFavorite = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { userId, symbol } = req.body;
+    const userId = typeof req.body?.userId === 'string' ? req.body.userId : '';
+    const symbol = typeof req.body?.symbol === 'string' ? req.body.symbol : '';
+    if (!mongoose.isValidObjectId(userId) || !symbol) {
+      res.status(400).json({ success: false, message: 'Neispravni podaci' });
+      return;
+    }
 
     const portfolio = await Portfolio.findOne({ userId });
     

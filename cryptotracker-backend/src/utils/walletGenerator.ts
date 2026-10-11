@@ -1,7 +1,16 @@
 import { ethers } from 'ethers';
 import crypto from 'crypto';
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-32-char-secret-key-change-this-in-production!!';
+const DEV_ENCRYPTION_KEY = 'dev-only-encryption-key-change-me';
+
+// Seed phrases are encrypted with this key. A missing key in production would mean every
+// installation uses the same public default, so the server refuses to run without one.
+function encryptionKey(): string {
+  const key = process.env.ENCRYPTION_KEY;
+  if (key) return key;
+  if (process.env.NODE_ENV === 'production') throw new Error('ENCRYPTION_KEY must be set in production');
+  return DEV_ENCRYPTION_KEY;
+}
 const ALGORITHM = 'aes-256-cbc';
 
 export interface WalletData {
@@ -31,7 +40,7 @@ export function generateWallet(): WalletData {
 // Enkriptuj seed phrase
 export function encryptSeedPhrase(seedPhrase: string): string {
   const iv = crypto.randomBytes(16);
-  const key = crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32);
+  const key = crypto.scryptSync(encryptionKey(), 'salt', 32);
   const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
   
   let encrypted = cipher.update(seedPhrase, 'utf8', 'hex');
@@ -42,11 +51,11 @@ export function encryptSeedPhrase(seedPhrase: string): string {
 
 // Dekriptuj seed phrase (za kasnije - kada korisnik treba da vidi svoj seed)
 export function decryptSeedPhrase(encryptedData: string): string {
-  const parts = encryptedData.split(':');
-  const iv = Buffer.from(parts[0], 'hex');
-  const encryptedText = parts[1];
+  const [ivHex, encryptedText] = encryptedData.split(':');
+  if (!ivHex || !encryptedText) throw new Error('Invalid encrypted seed phrase');
+  const iv = Buffer.from(ivHex, 'hex');
   
-  const key = crypto.scryptSync(ENCRYPTION_KEY, 'salt', 32);
+  const key = crypto.scryptSync(encryptionKey(), 'salt', 32);
   const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
   
   let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
@@ -56,6 +65,6 @@ export function decryptSeedPhrase(encryptedData: string): string {
 }
 
 // Obnovi wallet iz seed phrase-a
-export function restoreWalletFromSeed(seedPhrase: string): ethers.Wallet {
+export function restoreWalletFromSeed(seedPhrase: string): ethers.HDNodeWallet {
   return ethers.Wallet.fromPhrase(seedPhrase);
 }

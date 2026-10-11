@@ -1,6 +1,12 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
+// Required in production; a public default would let anyone sign tokens.
+function jwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (secret) return secret;
+  if (process.env.NODE_ENV === 'production') throw new Error('JWT_SECRET must be set in production');
+  return 'dev-only-jwt-secret';
+}
 const JWT_EXPIRES_IN = '7d';
 
 export interface TokenPayload {
@@ -9,12 +15,12 @@ export interface TokenPayload {
 }
 
 export const generateToken = (payload: TokenPayload): string => {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign(payload, jwtSecret(), { expiresIn: JWT_EXPIRES_IN });
 };
 
 export const verifyToken = (token: string): TokenPayload | null => {
   try {
-    return jwt.verify(token, JWT_SECRET) as TokenPayload;
+    return jwt.verify(token, jwtSecret()) as TokenPayload;
   } catch (error) {
     return null;
   }

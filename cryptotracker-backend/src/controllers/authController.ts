@@ -8,7 +8,11 @@ import { generateWallet } from '../utils/walletGenerator';
 // =======================
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name } = req.body ?? {};
+    if (typeof email !== "string" || typeof password !== "string" || (name !== undefined && typeof name !== "string")) {
+      res.status(400).json({ success: false, message: "Neispravni podaci" });
+      return;
+    }
 
     if (!email || !password || !name) {
       res.status(400).json({
@@ -84,7 +88,11 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 // =======================
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body ?? {};
+    if (typeof email !== "string" || typeof password !== "string") {
+      res.status(400).json({ success: false, message: "Neispravni podaci" });
+      return;
+    }
 
     if (!email || !password) {
       res.status(400).json({

@@ -9,7 +9,7 @@ import cryptoRoutes from './routes/cryptoRoutes';
 dotenv.config();
 
 const app: Application = express();
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
 
 // ========== MIDDLEWARE ==========
 app.use(cors({
@@ -78,7 +78,7 @@ const startServer = async () => {
       console.log('╠════════════════════════════════════════╣');
       console.log(`║  📡 Port: ${PORT}                       ║`);
       console.log(`║  🌍 Listening on: 0.0.0.0              ║`);
-      console.log(`║  🔗 URL: http://192.168.0.100:5000:${PORT}    ║`);
+      console.log(`║  🔗 On your network: http://<this computer's IP>:${PORT}/api`);
       console.log('╚════════════════════════════════════════╝');
     });
 
